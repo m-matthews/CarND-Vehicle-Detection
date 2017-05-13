@@ -178,12 +178,13 @@ The threshold for the heatmap involved iterative testing to determine a suitable
 
 The classes from [Advanced Lane Line Detection](https://github.com/m-matthews/CarND-Advanced-Lane-Lines/blob/master/writeup.md) Project's [03_Pipeline.py](https://github.com/m-matthews/CarND-Advanced-Lane-Lines/blob/master/03_Pipeline.py) were refactored slightly and moved into the [carnd](./carnd) folder to create a consistent structure.
 
-| Class   | Description                                                                                                     |
-| ------- | --------------------------------------------------------------------------------------------------------------- |
-| Camera  | Perform camera calibration and to distort the images to enable detection of straight lane lines.                |
-| Lane    | Track the current lane.                                                                                         |
-| Line    | Track a given lane from the current image.  A separate instance is used to track the left and right lane lines. |
-| Vehicle | Detect vehicles in the current images as per the current writeup.                                               |
+| Python File | Class   | Description                                                                                                     |
+| ----------- | ------- | --------------------------------------------------------------------------------------------------------------- |
+| camera.py   | Camera  | Perform camera calibration and to distort the images to enable detection of straight lane lines.                |
+| lane.py     | Lane    | Track the current lane.                                                                                         |
+| line.py     | Line    | Track a given lane from the current image.  A separate instance is used to track the left and right lane lines. |
+| utils.py    |         | Utility functions based on functions developed during the lessons.                                              |
+| vehicle.py  | Vehicle | Detect vehicles in the current images as per the current writeup.                                               |
 
 | Configuration File | Description                                                                                               |
 | ------------------ | --------------------------------------------------------------------------------------------------------- |
