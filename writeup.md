@@ -76,8 +76,8 @@ I also increased the amount of training data due to some images in the video str
 The initial data load (the `trainingdata()` function in [01_Training.py](./01_Training.py)) creates additional vehicle training samples by flipping the `GTI_Left` and `GTI_Right` images to provide additional data from a side-on perspective.  This was done as viewing the project video showed that the vehicles are in a side-on position more than a rear-view position.  This expansion of data is shown in the console when generating the training model.
 
 ```
-    Training Images: Car: 8,792 , Non-Car: 9,295
-    Training Samples: Car: 10,365 , Non-Car: 9,295
+Training Images: Car: 8,792 , Non-Car: 9,295
+Training Samples: Car: 10,365 , Non-Car: 9,295
 ```
 
 The number of sample images for Car and Non-Car are reasonably balanced.
@@ -112,17 +112,20 @@ The feature set created by this process requires normalisation to enable the mod
 
 ![alt text][imagenorm1]
 
+Note that the low level of detail in the early part of the normalised features is due to the image being generally gray rather than a primary color.
+
 
 ## Classifier Training
 
-The initial classifier training was performed with ...
+The initial classifier training was performed with a searching algorithm using `GridSearchCV` (see using the `method="grid"` in `train()` in [01_Training.py](./01_Training.py)).  After a number of iterations and selections, a `linear` SVC was selected with a `C` = 0.001.
 
 The output of the training program [01_Training.py](./01_Training.py) includes:
-* [vehicles.yaml](./carnd_vehicles.yaml)
-* vehicles_model.pkl
-* vehicles_scaler.pkl
 
-These files enable the next Pipeline program to be able to implement the correct feature extraction process to match the saved model.
+* [vehicles.yaml](./carnd_vehicles.yaml) - Details the final selected hyperparameters.
+* vehicles_model.pkl - The model classifier.
+* vehicles_scaler.pkl - The X Scaler.
+
+These files enable the subsequent Pipeline program to be able to implement the prediction and correct feature extraction process to match the saved model.
 
 
 ## Sliding Window Search
