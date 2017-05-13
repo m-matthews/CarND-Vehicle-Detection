@@ -6,6 +6,7 @@
 [imagesplit2]: ./output_images/split_GroupShuffleSplit.png "Group Shuffle Split"
 [imagehog1]: ./output_images/hog_features.png "HOG Features Checkerboard"
 [imagenorm1]: ./output_images/norm_features.png "Normalised Features"
+[imagecombined1]: ./output_images/combined_features.png "Combined Features"
 [imagesubset1]: ./output_images/simg_0.jpg "Sliding Window Subset (1)"
 [imagesubset2]: ./output_images/simg_1.jpg "Sliding Window Subset (2)"
 [imagesubset3]: ./output_images/simg_2.jpg "Sliding Window Subset (3)"
@@ -16,10 +17,10 @@
 [imagetest5]: ./output_images/test_test5.jpg "Test Vehicle Detection (5)"
 [imagetest6]: ./output_images/test_test6.jpg "Test Vehicle Detection (6)"
 [videoout1]: ./output_images/project_video_output.mp4 "Processed Video"
-[imagenonveh1]: ./output_images/NonVehicle/nonveh1.jpg
-[imagenonveh2]: ./output_images/NonVehicle/nonveh2.jpg
-[imagenonveh3]: ./output_images/NonVehicle/nonveh3.jpg
-[imagenonveh4]: ./output_images/NonVehicle/nonveh4.jpg
+[imagenonveh1]: ./output_images/NonVehicle/nonveh1.jpg "Non Vehicle Image (1)"
+[imagenonveh2]: ./output_images/NonVehicle/nonveh2.jpg "Non Vehicle Image (2)"
+[imagenonveh3]: ./output_images/NonVehicle/nonveh3.jpg "Non Vehicle Image (3)"
+[imagenonveh4]: ./output_images/NonVehicle/nonveh4.jpg "Non Vehicle Image (4)"
 [imagegti051]: ./output_images/GTI_Left/005/image0052.png
 [imagegti052]: ./output_images/GTI_Left/005/image0053.png
 [imagegti053]: ./output_images/GTI_Left/005/image0054.png
@@ -108,11 +109,45 @@ The Histogram of Gradients perform differently depending on the color space and 
 
 Based on the above image and experimentation, for the Histogram of Gradients I selected the `YUV` color space and selected only channel 0 (`Y`) for training the classifier.
 
-The feature set created by this process requires normalisation to enable the model to train correctly.  The following image shows the input and output of the normalisation step.
+Various experiments were performed to try different hyperparameters and their impacts.
+
+Rather than a single color space to be used for all of the image feature extraction, three separate variables were used:
+
+* `bspace`: Color space to use for spatially binned color.
+* `cspace`: Color space to use for color histograms.
+* `hspace`: Color space to use for HOG.
+
+I had originally expected variation could produce improvements, however after experimentation I selected `YUV` for all of these.
+
+The binned color size selected was 16x16 as this performed slightly better than the initial 32x32 and would also hopefully improve model generalisation.
+
+Experimentation of the HOG parameters resulted in the current selection shown in [01_Training.py](./01_Training.py):
+
+```python
+    hp = { # Binned color parameters.
+           'bspace': 'YUV',
+           'spatial_size': (16, 16),
+           # Color histogram parameters.
+           'cspace': 'YUV',
+           'hist_bins': 32,
+           'hist_range': (0, 256),
+           # HOG parameters
+           'hspace': 'YUV',
+           'hchannel': 0,
+           'orient': 12,
+           'pix_per_cell': 8,
+           'cell_per_block': 2
+         }
+```
+
+Note that at the end of the `train()` method these parameters are saved into [vehicles.yaml](./carnd/vehicles.yaml) for use in the later image and video processing pipeline.
+
+The features are then combined into a single flat feature set:
+![alt text][imagecombined1]
+
+The feature set is then normalised to enable the model to train correctly.  The following image shows the input and output of the normalisation step:
 
 ![alt text][imagenorm1]
-
-Note that the low level of detail in the early part of the normalised features is due to the image being generally gray rather than a primary color.
 
 
 ## Classifier Training
@@ -178,13 +213,13 @@ The threshold for the heatmap involved iterative testing to determine a suitable
 
 The classes from [Advanced Lane Line Detection](https://github.com/m-matthews/CarND-Advanced-Lane-Lines/blob/master/writeup.md) Project's [03_Pipeline.py](https://github.com/m-matthews/CarND-Advanced-Lane-Lines/blob/master/03_Pipeline.py) were refactored slightly and moved into the [carnd](./carnd) folder to create a consistent structure.
 
-| Python File | Class   | Description                                                                                                     |
-| ----------- | ------- | --------------------------------------------------------------------------------------------------------------- |
-| camera.py   | Camera  | Perform camera calibration and to distort the images to enable detection of straight lane lines.                |
-| lane.py     | Lane    | Track the current lane.                                                                                         |
-| line.py     | Line    | Track a given lane from the current image.  A separate instance is used to track the left and right lane lines. |
-| utils.py    |         | Utility functions based on functions developed during the lessons.                                              |
-| vehicle.py  | Vehicle | Detect vehicles in the current images as per the current writeup.                                               |
+| Python File                      | Class   | Description                                                                                                     |
+| -------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------- |
+| [camera.py](./carnd/camera.py)   | Camera  | Perform camera calibration and to distort the images to enable detection of straight lane lines.                |
+| [lane.py](./carnd/lane.py)       | Lane    | Track the current lane.                                                                                         |
+| [line.py](./carnd/line.py)       | Line    | Track a given lane from the current image.  A separate instance is used to track the left and right lane lines. |
+| [utils.py](./carnd/utils.py)     |         | Utility functions based on functions developed during the lessons.                                              |
+| [vehicle.py](./carnd/vehicle.py) | Vehicle | Detect vehicles in the current images as per the current writeup.                                               |
 
 | Configuration File | Description                                                                                               |
 | ------------------ | --------------------------------------------------------------------------------------------------------- |
@@ -193,15 +228,13 @@ The classes from [Advanced Lane Line Detection](https://github.com/m-matthews/Ca
 | [vehicles.yaml](./carnd/vehicles.yaml) | Hyperparameters used by the vehicle detection training.  The values are saved in this file to enable later pipeline code to ensure it uses consistent parameters. |
 
 
-## Output Videa
+## Output Video
 
-The video correctly identifies the vehicles within the input video stream.
+The [project video](./output_images/project_video_output.mp4) correctly identifies the vehicles within the input video stream.
 
-Note that oncoming traffic is detected at 0:09 and 0:22.  Note that due to the heat-map thresholding using previous frames to smooth any intermittent detection, this results in the detection of the fast-moving oncoming vehicles drawing squares slightly to the rear of those vehicles.
+Note that oncoming traffic is detected at 0:09 and 0:22, however due to the heat-map thresholding using previous frames to smooth any intermittent detection, this results in the detection of the fast-moving oncoming vehicles drawing squares slightly to the rear of those vehicles.
 
 The video and pipeline also make use of the `Line` and `Lane` classes developed in the previous [Advanced Lane Line Detection](https://github.com/m-matthews/CarND-Advanced-Lane-Lines/blob/master/writeup.md) project.
-
-![alt text][videoout1]
 
 
 ## Discussion
