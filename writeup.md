@@ -92,7 +92,7 @@ The GTI data includes data in a time-series so that subsequent images can be alm
 | `GTI_Left/018` | ![alt text][imagegti181] ![alt text][imagegti182] ![alt text][imagegti183] ![alt text][imagegti184] ![alt text][imagegti185] ![alt text][imagegti186] |
 | `GTI_Left/019` | ![alt text][imagegti191] ![alt text][imagegti192] ![alt text][imagegti193] ![alt text][imagegti194] ![alt text][imagegti195] ![alt text][imagegti196] |
 
-These subfolders were then used to create a grouping variable (`g`) to be used with `GroupShuffleSplit()`.  An example of using `GroupShuffleSplit()` can be seen in the following table which has a grouping variable corresponding to the color of the image:
+The names of these subfolders were then used to create a grouping variable (`g`) to be used with `GroupShuffleSplit()`.  An example of using `GroupShuffleSplit()` can be seen in the following table which has a grouping variable corresponding to the color of the image:
 
 | ShuffleSplit() | GroupShuffleSplit() |
 | -------------- | ------------------- |
@@ -101,27 +101,40 @@ These subfolders were then used to create a grouping variable (`g`) to be used w
 The group variable can be seen to have the correct effect of ensuring the training and test data do not have the same images included.  The sample program [00_ShuffleSplit.py](./00_ShuffleSplit.py) produced these images.
 
 
-## Historgram of Orient Gradients
+## Features
 
-The Histogram of Gradients perform differently depending on the color space and channel selected.  The start of [01_Training.py](./01_Training.py) exports the following image to enable a review of the type of data created:
+Three combined feature sets were used to train the classifier.
 
-![alt text][imagehog1]
+![alt text][imagecombined1]
 
-Based on the above image and experimentation, for the Histogram of Gradients I selected the `YUV` color space and selected only channel 0 (`Y`) for training the classifier.
-
-Various experiments were performed to try different hyperparameters and their impacts.
-
-Rather than a single color space to be used for all of the image feature extraction, three separate variables were used:
+The code allows each feature extraction to be derived from individual color spaces using three separate variables:
 
 * `bspace`: Color space to use for spatially binned color.
 * `cspace`: Color space to use for color histograms.
-* `hspace`: Color space to use for HOG.
+* `hspace`: Color space to use for Historgram of Orient Gradients (HOG).
 
-I had originally expected variation could produce improvements, however after experimentation I selected `YUV` for all of these.
+I had originally expected variation could produce improvements, however after experimentation I selected `YUV` as the color space for all feature extraction.
 
-The binned color size selected was 16x16 as this performed slightly better than the initial 32x32 and would also hopefully improve model generalisation.
 
-Experimentation of the HOG parameters resulted in the current selection shown in [01_Training.py](./01_Training.py):
+### Historgram of Orient Gradients
+
+The Histogram of Gradients (HOG) perform differently depending on the color space and channel(s) selected.  The start of [01_Training.py](./01_Training.py) exports the following image to enable a review of each channel and corresponding HOG features created:
+
+![alt text][imagehog1]
+
+Based on the above image and experimentation for the Histogram of Gradients I selected the `YUV` color space and selected only channel 0 (`Y`) for training the classifier.  Increasing the number of orientations from 9 to 12 improved the classifier performance.
+
+
+### Color (Spatial Binning and Histogram)
+
+Various experiments were performed to try different hyperparameters and their impacts.
+
+The binned color size selected was 16x16 as this performed slightly better than the initial 32x32 size.
+
+
+### Selected Hyperparameters
+
+Experimentation of the hyperparameters resulted in the current selection shown in [01_Training.py](./01_Training.py):
 
 ```python
     hp = { # Binned color parameters.
@@ -142,8 +155,8 @@ Experimentation of the HOG parameters resulted in the current selection shown in
 
 Note that at the end of the `train()` method these parameters are saved into [vehicles.yaml](./carnd/vehicles.yaml) for use in the later image and video processing pipeline.
 
-The features are then combined into a single flat feature set:
-![alt text][imagecombined1]
+
+### Feature Normalisation
 
 The feature set is then normalised to enable the model to train correctly.  The following image shows the input and output of the normalisation step:
 
@@ -153,6 +166,11 @@ The feature set is then normalised to enable the model to train correctly.  The 
 ## Classifier Training
 
 The initial classifier training was performed with a searching algorithm using `GridSearchCV` (see using the `method="grid"` in `train()` in [01_Training.py](./01_Training.py)).  After a number of iterations and selections, a `linear` SVC was selected with a `C` = 0.001.
+
+```
+1.99 Seconds to train SVC(C=0.001)...
+Test Accuracy of SVC =  0.9816
+```
 
 The output of the training program [01_Training.py](./01_Training.py) includes:
 
@@ -175,7 +193,7 @@ The selected scales are shown in the creation of the `Vehicles` instance at the 
                              (2, 410, 538)),
 ```
 
-The following images show the scale and indicate the number of scanned 64x64 window segments.  Note that the first square is 'thickened' to show the scanning window size.
+The following images show the scale and indicate the number of scanned 64x64 window segments.  Note that the first square is thicker to show the scanning window size.
 
 1) Image Scale: 1.0, Y Start: 402, Y Stop: 498.
 
@@ -199,7 +217,7 @@ This heat map is visualised in all images to enable debugging of the Vehicle Det
 
 | Heat Map present in the upper right Heads Up Display |
 | ---------------------------------------------------- |
-| ![alt text][imagetest4] |
+| ![alt text][imagetest4]                              |
 
 The threshold for the heatmap involved iterative testing to determine a suitable value based on the number of frames used to smooth the detection.  The final solution (as shown towards the bottom of the `process()` method) was 3 times the number of frames currently in the buffer:
 
@@ -207,6 +225,8 @@ The threshold for the heatmap involved iterative testing to determine a suitable
         heat_thresh = int(len(self.rectangles)*3)
         heatmap[heatmap <= heat_thresh] = 0
 ```
+
+The `scipy.ndimage.measurements.label` function is used to generate the list of distinct vehicles based on the heatmap.  This is then represented onto the image as the vehicle bounding box.
 
 
 ## Merging Vehicle Detection with Lane Line Detection
@@ -223,7 +243,7 @@ The classes from [Advanced Lane Line Detection](https://github.com/m-matthews/Ca
 
 | Configuration File | Description                                                                                               |
 | ------------------ | --------------------------------------------------------------------------------------------------------- |
-| [camera.yaml](./carnd/camera.yaml) | Configration file used by the Camera class. |
+| [camera.yaml](./carnd/camera.yaml) | Camera Calibration configuration used by the Camera class. |
 | [perspective_transform.yaml](./carnd/perspective_transform.yaml) | Perspective transformation used by the Lane class to create a 'top-down' view of the road surface. |
 | [vehicles.yaml](./carnd/vehicles.yaml) | Hyperparameters used by the vehicle detection training.  The values are saved in this file to enable later pipeline code to ensure it uses consistent parameters. |
 
