@@ -67,37 +67,38 @@ These files include a combination of:
 2) [KITTI vision benchmark suite](http://www.cvlibs.net/datasets/kitti/).
 3) Udacity supplied 'Extras' from the project video.
 
-I also increased the amount of training data due to some images in the video stream producing false positives in early pipeline testing.  This included images at the bridge crossing where the guardrail was detected as a vehicle.  In some situations this was correct as it was identifying a vehicle travelling in the opposite direction.
+I also increased the amount of training data due to some images in the video stream producing false positives in early pipeline testing.  This included images at the bridge crossing where the guardrail was detected as a vehicle, although in some situations this was correct as it was identifying a vehicle travelling in the opposite direction.
 
 | Example Vehicles | Example Non-Vehicles |
 | ---------------- | -------------------- |
 | ![alt text][imagegti051] ![alt text][imagegti111] ![alt text][imagegti181] ![alt text][imagegti191] | ![alt text][imagenonveh1] ![alt text][imagenonveh2] ![alt text][imagenonveh3] ![alt text][imagenonveh4] |
 
-The initial data load (the `trainingdata()` function in [01_Training.py](./01_Training.py) creates additional vehicle training samples by flipping the `GTI_Left` and `GTI_Right` flipped to provide additional data from a side-on perspective.  This expansion of data is shown in the console when generating the training model.
+The initial data load (the `trainingdata()` function in [01_Training.py](./01_Training.py)) creates additional vehicle training samples by flipping the `GTI_Left` and `GTI_Right` images to provide additional data from a side-on perspective.  This was done as viewing the project video showed that the vehicles are in a side-on position more than a rear-view position.  This expansion of data is shown in the console when generating the training model.
 
 ```
     Training Images: Car: 8,792 , Non-Car: 9,295
     Training Samples: Car: 10,365 , Non-Car: 9,295
 ```
 
-The number of samples for Car and Non-Car are reasonably balanced.
+The number of sample images for Car and Non-Car are reasonably balanced.
 
 The GTI data includes data in a time-series so that subsequent images can be almost identical.  To ensure the training and test data did not include these same images, manual grouping was performed to move related images into sequentially numbered subfolders.
 
 | Example Subfolder | Files |
 | ----------------- | ----- |
-| GTI_Left/005 | ![alt text][imagegti051] ![alt text][imagegti052] ![alt text][imagegti053] ![alt text][imagegti054] ![alt text][imagegti055] ![alt text][imagegti056] |
-| GTI_Left/011 | ![alt text][imagegti111] ![alt text][imagegti112] ![alt text][imagegti113] ![alt text][imagegti114] ![alt text][imagegti115] ![alt text][imagegti116] |
-| GTI_Left/018 | ![alt text][imagegti181] ![alt text][imagegti182] ![alt text][imagegti183] ![alt text][imagegti184] ![alt text][imagegti185] ![alt text][imagegti186] |
-| GTI_Left/019 | ![alt text][imagegti191] ![alt text][imagegti192] ![alt text][imagegti193] ![alt text][imagegti194] ![alt text][imagegti195] ![alt text][imagegti196] |
+| `GTI_Left/005` | ![alt text][imagegti051] ![alt text][imagegti052] ![alt text][imagegti053] ![alt text][imagegti054] ![alt text][imagegti055] ![alt text][imagegti056] |
+| `GTI_Left/011` | ![alt text][imagegti111] ![alt text][imagegti112] ![alt text][imagegti113] ![alt text][imagegti114] ![alt text][imagegti115] ![alt text][imagegti116] |
+| `GTI_Left/018` | ![alt text][imagegti181] ![alt text][imagegti182] ![alt text][imagegti183] ![alt text][imagegti184] ![alt text][imagegti185] ![alt text][imagegti186] |
+| `GTI_Left/019` | ![alt text][imagegti191] ![alt text][imagegti192] ![alt text][imagegti193] ![alt text][imagegti194] ![alt text][imagegti195] ![alt text][imagegti196] |
 
-These subfolders were then used to create a grouping variable (`g`) to be used with `GroupShuffleSplit()`.  An example of using `GroupShuffleSplit()` can be seen in the following table:
+These subfolders were then used to create a grouping variable (`g`) to be used with `GroupShuffleSplit()`.  An example of using `GroupShuffleSplit()` can be seen in the following table which has a grouping variable corresponding to the color of the image:
 
 | ShuffleSplit() | GroupShuffleSplit() |
 | -------------- | ------------------- |
 | ![alt text][imagesplit1] | ![alt text][imagesplit2] |
 
-The group variable can be seen to have the correct effect of ensuring the training and test data do not have the same grouped images included.  The sample program [ShuffleSplit.py](./00_ShuffleSplit.py) produce these images.
+The group variable can be seen to have the correct effect of ensuring the training and test data do not have the same images included.  The sample program [00_ShuffleSplit.py](./00_ShuffleSplit.py) produced these images.
+
 
 ## Historgram of Orient Gradients
 
@@ -111,9 +112,10 @@ The feature set created by this process requires normalisation to enable the mod
 
 ![alt text][imagenorm1]
 
+
 ## Classifier Training
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+The initial classifier training was performed with ...
 
 The output of the training program [01_Training.py](./01_Training.py) includes:
 * [vehicles.yaml](./carnd_vehicles.yaml)
