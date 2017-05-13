@@ -1,0 +1,9 @@
+cell_per_block: 2
+cspace: YUV
+hchannel: 0
+hist_bins: 32
+hist_range: !!python/tuple [0, 256]
+hspace: YUV
+orient: 12
+pix_per_cell: 8
+spatial_size: !!python/tuple [32, 32]
