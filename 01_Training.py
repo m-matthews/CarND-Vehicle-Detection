@@ -119,9 +119,11 @@ if __name__ == '__main__':
             ax[i][2+channel*2].axis('off')
     plt.savefig("./output_images/hog_features.png")
 
-    hp = { # Color parameters.
+    hp = { # Binned color parameters.
+           'bspace': 'YUV',
+           'spatial_size': (16, 16),
+           # Color histogram parameters.
            'cspace': 'YUV',
-           'spatial_size': (32, 32),
            'hist_bins': 32,
            'hist_range': (0, 256),
            # HOG parameters

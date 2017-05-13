@@ -36,12 +36,13 @@ class Vehicles:
         scales: List of scales to be used for vehicle detection.
         hud: Is this instance implementing a heads-up-display view in the top-right?
         rectangles: List of rectangles identified as containing a vehicle.
-        cspace: Color Histogram - color space.
-        spatial_size: Color Histogram - Spatial Size.
+        bspace: Color Spatial Binning - Color Space.
+        spatial_size: Color Spatial Binning - Spatial Size.
+        cspace: Color Histogram - Color Space.
         hist_bins: Color Histogram - Bins.
         hist_range: Color Histogram - Bin Range.
-        hspace: HOG Features - color space.
-        hchannel: HOG Features - channel to use from hspace [0|1|2|"ALL"].
+        hspace: HOG Features - Color Space.
+        hchannel: HOG Features - Channel to use from hspace [0|1|2|"ALL"].
         orient: HOG Features - Orientations.
         pix_per_cell: HOG Features - Pixels per cell.
         cell_per_block: HOG Features - Cells per block.
@@ -78,6 +79,7 @@ class Vehicles:
         """Import a python dictonary set of hyperparameters."""
         self.cspace = hp['cspace']
         self.spatial_size = tuple(hp['spatial_size'])
+        self.bspace = hp['bspace']
         self.hist_bins = hp['hist_bins']
         self.hist_range = tuple(hp['hist_range'])
         self.hspace = hp['hspace']
@@ -91,8 +93,9 @@ class Vehicles:
         """Read the current saved model classifier."""
         with open(self.hp_yaml, "r") as f:
             hp = yaml.load(stream=f)
-            self.cspace = hp['cspace']
+            self.bspace = hp['bspace']
             self.spatial_size = tuple(hp['spatial_size'])
+            self.cspace = hp['cspace']
             self.hist_bins = hp['hist_bins']
             self.hist_range = tuple(hp['hist_range'])
             self.hspace = hp['hspace']
@@ -145,10 +148,10 @@ class Vehicles:
         """
 
         # Convert image to the color and hog colorspaces.
-        cimg, himg = convert_colors(img, self.cspace, self.hspace)
+        bimg, cimg, himg = convert_colors(img, self.bspace, self.cspace, self.hspace)
     
         # Apply bin_spatial() to get spatial color features
-        f1 = bin_spatial(cimg, size=self.spatial_size)
+        f1 = bin_spatial(bimg, size=self.spatial_size)
         # Apply color_hist() to get color histogram features
         f2 = color_hist(cimg, nbins=self.hist_bins, bins_range=self.hist_range)
     
@@ -254,8 +257,9 @@ class Vehicles:
         joblib.dump(clf, self.model_pkl)
         joblib.dump(self.X_scaler, self.xscaler_pkl)
         with open(self.hp_yaml, "w") as f:
-            yaml.dump({'cspace': self.cspace,
+            yaml.dump({'bspace': self.bspace,
                        'spatial_size': self.spatial_size,
+                       'cspace': self.cspace,
                        'hist_bins': self.hist_bins,
                        'hist_range': self.hist_range,
                        'hspace': self.hspace,
@@ -287,7 +291,7 @@ class Vehicles:
 
         for i, (scale, ystart, ystop) in enumerate(self.scales):
             # Create Color Image and HOG Image.
-            cimg, himg = convert_colors(img[ystart:ystop,:,:], self.cspace, self.hspace)
+            bimg, cimg, himg = convert_colors(img[ystart:ystop,:,:], self.bspace, self.cspace, self.hspace)
             if debug:
                 simg = img[ystart:ystop,:,:].copy()
         
@@ -295,6 +299,7 @@ class Vehicles:
                 imshape = cimg.shape
                 if debug:
                     simg = cv2.resize(simg, (np.int(imshape[1]/scale), np.int(imshape[0]/scale)))
+                bimg = cv2.resize(bimg, (np.int(imshape[1]/scale), np.int(imshape[0]/scale)))
                 cimg = cv2.resize(cimg, (np.int(imshape[1]/scale), np.int(imshape[0]/scale)))
                 himg = cv2.resize(himg, (np.int(imshape[1]/scale), np.int(imshape[0]/scale)))
 
@@ -345,11 +350,12 @@ class Vehicles:
                                       (0,0,255), 3 if xb == 0 and yb == 0 else 1)
 
                     # Extract the image patch
-                    subimg = cv2.resize(cimg[ytop:ytop+window, xleft:xleft+window], (64,64))
+                    bsubimg = cv2.resize(bimg[ytop:ytop+window, xleft:xleft+window], (64,64))
+                    csubimg = cv2.resize(cimg[ytop:ytop+window, xleft:xleft+window], (64,64))
 
                     # Get color features
-                    spatial_features = bin_spatial(subimg, size=self.spatial_size)
-                    hist_features = color_hist(subimg, nbins=self.hist_bins, bins_range=self.hist_range)
+                    spatial_features = bin_spatial(bsubimg, size=self.spatial_size)
+                    hist_features = color_hist(csubimg, nbins=self.hist_bins, bins_range=self.hist_range)
 
                     # Scale features and make a prediction
                     test_features = self.X_scaler.transform(np.hstack((spatial_features, hist_features, hog_features)).reshape(1, -1))    

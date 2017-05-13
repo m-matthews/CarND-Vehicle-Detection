@@ -35,20 +35,22 @@ def convert_color(img, colspace='YCrCb'):
         print("ERROR: Unknown destination color space '" + colspace + "'.")
         return img
 
-def convert_colors(img, cspace, hspace):
-    """Convert one image into two separate color spaces.
+def convert_colors(img, bspace, cspace, hspace):
+    """Convert one image into separate color spaces.
 
     Args:
         img: Input image.
-        cspace: Destination color space (assumes input is RGB).
+        bspace: Destination binning color space (assumes input is RGB).
+        cspace: Destination histogram color space (assumes input is RGB).
         hspace: HOG destination color space (assumes input is RGB).
 
     Returns:
         Converted image.
     """
+    bimg = convert_color(img, bspace)
     cimg = convert_color(img, cspace)
     himg = convert_color(img, hspace)
-    return cimg, himg
+    return bimg, cimg, himg
 
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, 
                      vis=False, feature_vec=True):
