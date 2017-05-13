@@ -154,11 +154,12 @@ The following images show the scale and indicate the number of scanned 64x64 win
 
 ![alt text][imagesubset3]
 
+
 ## Heat Map
 
 Where the model predicts a vehicle to be present in the Sliding Window, a rectangle is added to generate a heat map.  This is then thresholded to determine the presence of a vehicle in that region of the image.
 
-This heat map is visualised in all images to enable debugging of the Vehicle Detection functionality by using the `hud=True` 
+This heat map is visualised in all images to enable debugging of the Vehicle Detection functionality by using the `hud=True` options in the creation of the `Vehicle` class instance.
 
 
 | Heat Map present in the upper right Heads Up Display |
@@ -172,11 +173,10 @@ The threshold for the heatmap involved iterative testing to determine a suitable
         heatmap[heatmap <= heat_thresh] = 0
 ```
 
-previous [Advanced Lane Line Detection](https://github.com/m-matthews/CarND-Advanced-Lane-Lines/blob/master/writeup.md) project.
 
 ## Merging Vehicle Detection with Lane Line Detection
 
-The classes from Lane Line Detection Project's [03_Pipeline.py](https://github.com/m-matthews/CarND-Advanced-Lane-Lines/blob/master/03_Pipeline.py) were refactored slightly and moved into the [carnd](./carnd) folder to create a consistent structure.
+The classes from [Advanced Lane Line Detection](https://github.com/m-matthews/CarND-Advanced-Lane-Lines/blob/master/writeup.md) Project's [03_Pipeline.py](https://github.com/m-matthews/CarND-Advanced-Lane-Lines/blob/master/03_Pipeline.py) were refactored slightly and moved into the [carnd](./carnd) folder to create a consistent structure.
 
 | Class   | Description                                                                                                     |
 | ------- | --------------------------------------------------------------------------------------------------------------- |
@@ -185,8 +185,8 @@ The classes from Lane Line Detection Project's [03_Pipeline.py](https://github.c
 | Line    | Track a given lane from the current image.  A separate instance is used to track the left and right lane lines. |
 | Vehicle | Detect vehicles in the current images as per the current writeup.                                               |
 
-| Configuration | Description                                                                                               |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
+| Configuration File | Description                                                                                               |
+| ------------------ | --------------------------------------------------------------------------------------------------------- |
 | [camera.yaml](./carnd/camera.yaml) | Configration file used by the Camera class. |
 | [perspective_transform.yaml](./carnd/perspective_transform.yaml) | Perspective transformation used by the Lane class to create a 'top-down' view of the road surface. |
 | [vehicles.yaml](./carnd/vehicles.yaml) | Hyperparameters used by the vehicle detection training.  The values are saved in this file to enable later pipeline code to ensure it uses consistent parameters. |
@@ -214,11 +214,12 @@ The classifier currently required some work to remove false positives by includi
 
 The `./output_images` folder contains the following:
 
-* `ccal_*`: Camera Calibration images.
-* `perspective_transform_*`: Perspective Transformation images.
+* `hog_features.png`: HOG features for each color space.
+* `norm_features.png`: Normalised version of the feature vector.
+* `simg_*`: Subset images for each layer of scale used in the pipeline.
+* `split_*`: Images from [00_ShuffleSplit.py](./00_ShuffleSplit.py) demonstrating the use of `GroupShuffleSplit()`.
 * `test_*`: Test images processed from `./test_images` (detailed in **Appendix 2: Test Images**).
-  * `test_project_video_*`: Images extracted from the `./project_video.mp4` for use in this `writeup.md`.
-* `threshold_*`: Debugging images showing the different channels and binary threshold images.
+* `project_video_output.mp4`: Processed video.
 
 
 ## Appendix 2: Test Images
