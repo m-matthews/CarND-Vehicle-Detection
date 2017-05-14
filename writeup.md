@@ -83,7 +83,7 @@ Training Samples: Car: 10,365 , Non-Car: 9,295
 
 The number of sample images for Car and Non-Car are reasonably balanced.
 
-The GTI data includes data in a time-series so that subsequent images can be almost identical.  To ensure the training and test data did not include these same images, manual grouping was performed to move related images into sequentially numbered subfolders.
+The GTI data includes images in a time-series so that subsequent images can be almost identical.  To ensure the training and test data did not include these same images, manual grouping was performed to move related images into sequentially numbered subfolders.
 
 | Example Subfolder | Files |
 | ----------------- | ----- |
@@ -153,7 +153,7 @@ Experimentation of the hyperparameters resulted in the current selection shown i
          }
 ```
 
-Note that at the end of the `train()` method these parameters are saved into [vehicles.yaml](./carnd/vehicles.yaml) for use in the later image and video processing pipeline.
+Note that at the end of the [Vehicle](./carnd/vehicle.py) class `train()` method these parameters are saved into [vehicles.yaml](./carnd/vehicles.yaml) for use in the later image and video processing pipeline.
 
 
 ### Feature Normalisation
@@ -261,7 +261,7 @@ The video and pipeline also make use of the `Line` and `Lane` classes developed 
 
 The pipeline is not currently 'real-time'.  The performance could be improved by using OpenCV as the HOG generator, and alternatively using entirely different techniques for vehicle detection with Neural Networks without using the HOG processing at all.
 
-The classifier currently required some work to remove false positives by including additional 'non-car' examples.  This suggests that an alternative approach should be used for this project (eg: Neural Networks) as otherwise additional environments such as cityscapes etc may cause additional false positive detection.
+The classifier currently required some work to remove false positives by including additional 'non-car' examples.  This suggests that an alternative approach should be used for this project (eg: Neural Networks) as otherwise additional environments such as cityscapes etc may cause additional false positive detection that would need to be addressed.
 
 
 ## Appendix 1: Contents of 'output_images'
